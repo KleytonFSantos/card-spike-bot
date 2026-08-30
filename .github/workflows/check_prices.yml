@@ -1,0 +1,38 @@
+name: Check LigaMagic Price Increases
+
+on:
+  schedule:
+    # Roda a cada 6 horas (ajuste como quiser: https://crontab.guru)
+    - cron: "0 */6 * * *"
+  workflow_dispatch: {} # permite rodar manualmente pela aba Actions do GitHub
+
+jobs:
+  check-prices:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Rodar verificação de preços
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py
+
+      - name: Salvar estado atualizado no repositório
+        run: |
+          git config --global user.name "price-alert-bot"
+          git config --global user.email "actions@github.com"
+          git add state.json
+          git diff --quiet --cached || git commit -m "Atualiza histórico de preços [skip ci]"
+          git push
