@@ -1,38 +1,3 @@
-"""
-Scraper da página "Variações de Preço" da LigaMagic.
-https://www.ligamagic.com.br/?view=cards/variacao&show=alta
-
-DESCOBERTA IMPORTANTE (baseada no HTML real da página):
-A página embute um array JSON puro dentro de uma tag <script>, na variável
-`cardsjson`. Cada item já vem com nome, edição e preço prontos — não
-precisamos de seletores CSS/DOM. Exemplo de um item real:
-
-    {
-      "sNomeIngles": "Doubling Season",
-      "sNomePortugues": "Temporada da Multiplicação",
-      "ed_sNome": "Foundations",
-      "ed_sNomePortugues": "",
-      "preco_sem_formatacao": "110.00",      -> preço atual (menor preço à venda)
-      "varianciaSemFormat": "14.80",         -> variação em R$ (NÃO em %) no período "Dia"
-      ...
-    }
-
-CUIDADO — a "variação" da LigaMagic é em R$, não em %, e a lista vem
-ordenada por esse valor absoluto, não pelo percentual. Ou seja: uma carta
-barata que triplicou de preço pode aparecer bem no final da lista, atrás
-de uma carta cara que só subiu 5%. Por isso o scraper calcula o percentual
-manualmente (preço_atual vs preço_atual - variação) e pode precisar
-carregar várias páginas ("Mostrar mais") para achar tudo que passa do
-threshold de 50%.
-
-LIMITAÇÃO CONHECIDA: a paginação via "Mostrar mais" é carregada via AJAX
-e eu não consegui confirmar o formato exato da resposta desse endpoint
-(o acesso ao site foi bloqueado durante o desenvolvimento). O código abaixo
-tenta capturar essas respostas de rede automaticamente — se não funcionar
-de primeira, me manda o conteúdo de uma resposta de rede (aba Network do
-navegador, filtrando por XHR/Fetch, clicando em "Mostrar mais") que eu
-ajusto o parser rapidinho.
-"""
 import json
 import re
 from dataclasses import dataclass
@@ -144,6 +109,15 @@ def fetch_price_increases(min_price: float = 10.0, min_pct: float = 50.0, max_lo
         page.on("response", handle_response)
 
         page.goto(URL, wait_until="networkidle", timeout=60000)
+
+        # Salva screenshot + HTML para debug (ajuda a diagnosticar bloqueio anti-bot,
+        # especialmente em ambientes como GitHub Actions onde o IP pode ser bloqueado)
+        try:
+            page.screenshot(path="debug_screenshot.png", full_page=True)
+            with open("debug_page.html", "w", encoding="utf-8") as f:
+                f.write(page.content())
+        except Exception as e:
+            print(f"Aviso: não foi possível salvar arquivos de debug: {e}")
 
         # Captura o lote inicial embutido no HTML
         register_items(_extract_cardsjson(page.content()))
