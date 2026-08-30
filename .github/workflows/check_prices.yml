@@ -9,6 +9,8 @@ on:
 jobs:
   check-prices:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@v4
