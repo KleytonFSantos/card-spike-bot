@@ -1,11 +1,3 @@
-"""
-Orquestra o fluxo completo:
-1. Faz scraping da página de variações de preço da LigaMagic
-2. Filtra cartas com alta >= 50% e preço atual >= R$10
-3. Ignora cartas já notificadas (a menos que tenham subido ainda mais)
-4. Envia notificação via Telegram para as novidades
-5. Salva o estado atualizado
-"""
 from scraper import fetch_price_increases
 from telegram_notify import send_telegram_message, format_alert
 from state import load_state, save_state, should_notify, record_notification
