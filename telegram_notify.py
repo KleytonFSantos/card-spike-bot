@@ -1,16 +1,3 @@
-"""
-Envio de notificações via bot do Telegram.
-
-O TOKEN nunca deve ficar escrito no código — ele vem de uma variável
-de ambiente (TELEGRAM_BOT_TOKEN), configurada como Secret no GitHub Actions
-ou no seu .env local.
-
-O CHAT_ID é o ID da conversa/grupo pra onde a mensagem vai. Para descobrir
-o seu chat_id pessoal:
-1. Mande qualquer mensagem para o seu bot no Telegram
-2. Acesse no navegador: https://api.telegram.org/bot<SEU_TOKEN>/getUpdates
-3. Procure o campo "chat":{"id": ...} na resposta
-"""
 import os
 import requests
 

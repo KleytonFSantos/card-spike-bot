@@ -25,7 +25,6 @@ def _to_float(value) -> float:
 
 
 def _item_to_change(item: dict):
-    """Converte um item do cardsjson em CardPriceChange, calculando o %."""
     name = item.get("sNomePortugues") or item.get("sNomeIngles") or ""
     edition = item.get("ed_sNomePortugues") or item.get("ed_sNome") or ""
 
@@ -62,12 +61,6 @@ def _extract_cardsjson(html: str) -> list:
 
 
 def fetch_price_increases(min_price: float = 10.0, min_pct: float = 50.0, max_load_more_clicks: int = 15):
-    """
-    Abre a página, extrai o cardsjson inicial, tenta clicar em "Mostrar mais"
-    repetidas vezes para carregar mais cartas, e captura tanto o HTML quanto
-    respostas de rede JSON que apareçam nesse processo. No final, calcula o
-    % de variação de cada carta e filtra pelas condições passadas.
-    """
     all_items = {}  # chave = IDE_CartaPrincipal, evita duplicatas
 
     def register_items(items):
@@ -78,7 +71,6 @@ def fetch_price_increases(min_price: float = 10.0, min_pct: float = 50.0, max_lo
             all_items[key] = item
 
     def handle_response(response):
-        # Tenta capturar cartas vindas de chamadas AJAX do "Mostrar mais"
         try:
             content_type = response.headers.get("content-type", "")
             if "json" in content_type:
@@ -110,8 +102,6 @@ def fetch_price_increases(min_price: float = 10.0, min_pct: float = 50.0, max_lo
 
         page.goto(URL, wait_until="networkidle", timeout=60000)
 
-        # Salva screenshot + HTML para debug (ajuda a diagnosticar bloqueio anti-bot,
-        # especialmente em ambientes como GitHub Actions onde o IP pode ser bloqueado)
         try:
             page.screenshot(path="debug_screenshot.png", full_page=True)
             with open("debug_page.html", "w", encoding="utf-8") as f:
@@ -119,10 +109,8 @@ def fetch_price_increases(min_price: float = 10.0, min_pct: float = 50.0, max_lo
         except Exception as e:
             print(f"Aviso: não foi possível salvar arquivos de debug: {e}")
 
-        # Captura o lote inicial embutido no HTML
         register_items(_extract_cardsjson(page.content()))
 
-        # Tenta carregar mais páginas clicando em "Mostrar mais"
         for _ in range(max_load_more_clicks):
             button = page.query_selector(".card-load-more-button")
             if not button or not button.is_visible():

@@ -11,7 +11,7 @@ from telegram_notify import send_telegram_message, format_alert
 from state import load_state, save_state, should_notify, record_notification
 
 MIN_PRICE = 10.0
-MIN_PCT = 50.0
+MIN_PCT = 30.0
 
 
 def main():
